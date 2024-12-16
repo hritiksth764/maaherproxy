@@ -9,12 +9,21 @@ export default function handler(req, res) {
     ? "https://maahermobile.vercel.app"
     : "https://maaher.vercel.app";
 
-  // Proxy the request to the appropriate target based on device type
   return createProxyMiddleware({
     target: targetUrl,
     changeOrigin: true,
     pathRewrite: {
-      "^/": "/",
+      "^/": "/", // Keep the path structure intact
+    },
+    onProxyRes(proxyRes, req, res) {
+      // Ensure Location headers are rewritten to use the custom domain
+      const locationHeader = proxyRes.headers["location"];
+      if (locationHeader) {
+        proxyRes.headers["location"] = locationHeader.replace(
+          /(https?:\/\/)(maaher\.vercel\.app|maahermobile\.vercel\.app)/i,
+          "https://maaher.life"
+        );
+      }
     },
   })(req, res);
 }
